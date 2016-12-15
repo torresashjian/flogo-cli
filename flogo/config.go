@@ -12,6 +12,7 @@ type FlogoProjectDescriptor struct {
 	Models     []*ItemDescriptor `json:"models"`
 	Activities []*ItemDescriptor `json:"activities"`
 	Triggers   []*ItemDescriptor `json:"triggers"`
+	Services   []*Item           `json:"services,omitempty"`
 }
 
 // FlogoPaletteDescriptor is the flogo palette descriptor object
@@ -28,6 +29,13 @@ type FlogoPaletteDescriptor struct {
 	Description string `json:"description"`
 
 	FlogoExtensions *FlogoExtensions `json:"extensions"`
+}
+
+// Item is configuration for a model, activity or trigger
+type Item struct {
+	Id   string      `json:"id"`
+	Ref  string      `json:"ref"`
+	Data interface{} `json:"data"`
 }
 
 // ItemDescriptor is configuration for a model, activity or trigger

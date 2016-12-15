@@ -1,12 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"encoding/json"
 
 	"github.com/TIBCOSoftware/flogo-cli/cli"
 	"github.com/TIBCOSoftware/flogo-cli/util"
@@ -96,7 +96,7 @@ func (c *cmdBuild) Exec(args []string) error {
 
 		var activities []*ItemDescriptor
 
-		for  _, activity := range projectDescriptor.Activities {
+		for _, activity := range projectDescriptor.Activities {
 
 			if _, ok := activityTypes[activity.Name]; ok {
 				activities = append(activities, activity)
@@ -126,9 +126,9 @@ func (c *cmdBuild) Exec(args []string) error {
 
 		var triggers []*ItemDescriptor
 
-		for  _, trigger := range projectDescriptor.Triggers {
+		for _, trigger := range projectDescriptor.Triggers {
 
-			if ContainsTriggerConfig(triggersConfig.Triggers, trigger.Name)  {
+			if ContainsTriggerConfig(triggersConfig.Triggers, trigger.Name) {
 				triggers = append(triggers, trigger)
 			}
 		}
@@ -154,7 +154,7 @@ func (c *cmdBuild) Exec(args []string) error {
 			os.Exit(2)
 		}
 
-		configInfo := &ConfigInfo{Include:true, ConfigJSON:string(engineCfg), TriggerJSON:string(triggersCfg)}
+		configInfo := &ConfigInfo{Include: true, ConfigJSON: string(engineCfg), TriggerJSON: string(triggersCfg)}
 
 		createEngineConfigGoFile(gb.CodeSourcePath, configInfo)
 
@@ -169,4 +169,3 @@ func (c *cmdBuild) Exec(args []string) error {
 
 	return nil
 }
-
