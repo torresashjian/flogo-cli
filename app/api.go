@@ -150,6 +150,7 @@ func doCreate(env env.Project, appJson string, appDir string, appName string, ve
 
 	createMainGoFile(cmdPath, "")
 	createImportsGoFile(cmdPath, deps)
+
 	return nil
 }
 
@@ -291,6 +292,7 @@ func doPrepare(env env.Project, options *PrepareOptions) (err error) {
 		options = &PrepareOptions{}
 	}
 
+	// Call external preprocessor
 	if options.PreProcessor != nil {
 		err = options.PreProcessor.PrepareForBuild(env)
 		if err != nil {
@@ -309,10 +311,10 @@ func doPrepare(env env.Project, options *PrepareOptions) (err error) {
 	}
 
 	//generate imports file
-	deps := ExtractDependencies(descriptor)
+	//deps := ExtractDependencies(descriptor)
 
 	cmdPath := path.Join(env.GetSourceDir(), strings.ToLower(descriptor.Name))
-	createImportsGoFile(cmdPath, deps)
+	//createImportsGoFile(cmdPath, deps)
 
 	removeEmbeddedAppGoFile(cmdPath)
 	removeShimGoFiles(cmdPath)
