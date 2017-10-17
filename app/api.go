@@ -20,9 +20,9 @@ type BuildPreProcessor interface {
 }
 
 // CreateApp creates an application from the specified json application descriptor
-func CreateApp(env env.Project, appJson , appDir , appName , vendorDir , libVersion string) error {
+func CreateApp(env env.Project, appJson , appDir , appName , vendorDir string) error {
 	if IsBuildExperimental(){
-		return doCreate(env, appJson, appDir, appName, vendorDir, libVersion)
+		return doCreate(env, appJson, appDir, appName, vendorDir)
 	}
 
 
@@ -95,7 +95,7 @@ func CreateApp(env env.Project, appJson , appDir , appName , vendorDir , libVers
 }
 
 // doCreate performs the app creation
-func doCreate(enviro env.Project, appJson , appDir , appName , vendorDir , libVersion string) error{
+func doCreate(enviro env.Project, appJson , appDir , appName , vendorDir string) error{
 	descriptor, err := ParseAppDescriptor(appJson)
 	if err != nil {
 		return err
@@ -158,8 +158,6 @@ func doCreate(enviro env.Project, appJson , appDir , appName , vendorDir , libVe
 	if err != nil {
 		return err
 	}
-
-	//enviro.InstallDependency(pathFlogoLib, libVersion)
 
 	return nil
 }
