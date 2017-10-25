@@ -97,6 +97,7 @@ func CreateApp(env env.Project, appJson , appDir , appName , vendorDir string) e
 
 // doCreate performs the app creation
 func doCreate(enviro env.Project, appJson , appDir , appName , vendorDir string) error{
+	fmt.Printf("Creating initial project structure, this migh take a few seconds ...")
 	descriptor, err := ParseAppDescriptor(appJson)
 	if err != nil {
 		return err
@@ -310,6 +311,13 @@ func doPrepare(env env.Project, options *PrepareOptions) (err error) {
 			return err
 		}
 	}
+
+	//generate metadata
+	err = generateGoMetadata(env)
+	if err != nil {
+		return err
+	}
+
 	//load descriptor
 	appJson, err := fgutil.LoadLocalFile(path.Join(env.GetRootDir(), "flogo.json"))
 
@@ -321,19 +329,13 @@ func doPrepare(env env.Project, options *PrepareOptions) (err error) {
 		return err
 	}
 
-	//generate imports file
-	//deps := ExtractDependencies(descriptor)
-
-	cmdPath := path.Join(env.GetSourceDir(), strings.ToLower(descriptor.Name))
-	//createImportsGoFile(cmdPath, deps)
-
-	removeEmbeddedAppGoFile(cmdPath)
-	removeShimGoFiles(cmdPath)
+	removeEmbeddedAppGoFile(env.GetAppDir())
+	removeShimGoFiles(env.GetAppDir())
 
 	if options.Shim != "" {
 
-		removeMainGoFile(cmdPath)//todo maybe rename if it exists
-		createShimSupportGoFile(cmdPath, appJson, options.EmbedConfig)
+		removeMainGoFile(env.GetAppDir()) //todo maybe rename if it exists
+		createShimSupportGoFile(env.GetAppDir(), appJson, options.EmbedConfig)
 
 		fmt.Println("Shim:", options.Shim)
 
@@ -352,15 +354,33 @@ func doPrepare(env env.Project, options *PrepareOptions) (err error) {
 					return err
 				}
 
+				fmt.Println("Shim Metadata:", metadata.Shim)
+
 				if metadata.Shim != "" {
 
 					//todo blow up if shim file not found
 					shimFilePath := path.Join(env.GetVendorSrcDir(), value.Ref, dirShim, fileShimGo)
 					fmt.Println("Shim File:", shimFilePath)
-					fgutil.CopyFile(shimFilePath, path.Join(cmdPath, fileShimGo))
+					fgutil.CopyFile(shimFilePath, path.Join(env.GetAppDir(), fileShimGo))
 
 					if metadata.Shim == "plugin" {
 						//look for Makefile and execute it
+						makeFilePath := path.Join(env.GetVendorSrcDir(), value.Ref, dirShim, makeFile)
+						fmt.Println("Make File:", makeFilePath)
+						fgutil.CopyFile(makeFilePath, path.Join(env.GetAppDir(), makeFile))
+
+						// Execute make
+						cmd := exec.Command("make", "-C", env.GetAppDir())
+						cmd.Stdout = os.Stdout
+						cmd.Stderr = os.Stderr
+						cmd.Env = append(os.Environ(),
+							fmt.Sprintf("GOPATH=%s", env.GetRootDir()),
+						)
+
+						err = cmd.Run()
+						if err != nil {
+							return err
+						}
 					}
 				}
 
@@ -369,7 +389,7 @@ func doPrepare(env env.Project, options *PrepareOptions) (err error) {
 		}
 
 	} else if options.EmbedConfig {
-		createEmbeddedAppGoFile(cmdPath, appJson)
+		createEmbeddedAppGoFile(env.GetAppDir(), appJson)
 	}
 	return
 }
