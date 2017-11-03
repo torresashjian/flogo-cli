@@ -252,8 +252,6 @@ func PrepareApp(env env.Project, options *PrepareOptions) (err error) {
 					return err
 				}
 
-				fmt.Println("Shim Metadata:", metadata.Shim)
-
 				if metadata.Shim != "" {
 
 					//todo blow up if shim file not found
@@ -432,6 +430,8 @@ func doPrepare(env env.Project, options *PrepareOptions) (err error) {
 type BuildOptions struct {
 	*PrepareOptions
 
+	NoGeneration bool
+	GenerationOnly bool
 	SkipPrepare bool
 }
 
@@ -446,7 +446,12 @@ func BuildApp(env env.Project, options *BuildOptions) (err error) {
 		options = &BuildOptions{}
 	}
 
-	if !options.SkipPrepare {
+	if options.GenerationOnly{
+		// Only perform prepare
+		return PrepareApp(env, options.PrepareOptions)
+	}
+
+	if !options.SkipPrepare && !options.NoGeneration {
 		err = PrepareApp(env, options.PrepareOptions)
 
 		if err != nil {
@@ -477,13 +482,19 @@ func doBuild(env env.Project, options *BuildOptions) (err error) {
 		options = &BuildOptions{}
 	}
 
-	if !options.SkipPrepare {
+	if options.GenerationOnly{
+		// Only perform prepare
+		return PrepareApp(env, options.PrepareOptions)
+	}
+
+	if !options.SkipPrepare && !options.NoGeneration {
 		err = PrepareApp(env, options.PrepareOptions)
 
 		if err != nil {
 			return err
 		}
 	}
+
 
 	err = env.Build()
 	if err != nil {
