@@ -142,7 +142,7 @@ func doCreate(enviro env.Project, appJson, rootDir, appName, vendorDir, constrai
 		return err
 	}
 
-	err = enviro.Create(false, vendorDir)
+	err = enviro.Create(false, "")
 	if err != nil {
 		return err
 	}
@@ -155,6 +155,7 @@ func doCreate(enviro env.Project, appJson, rootDir, appName, vendorDir, constrai
 	appDir := path.Join(enviro.GetSourceDir(), descriptor.Name)
 	os.MkdirAll(appDir, os.ModePerm)
 
+	// Validate structure
 	err = enviro.Open()
 	if err != nil {
 		return err
@@ -176,7 +177,6 @@ func doCreate(enviro env.Project, appJson, rootDir, appName, vendorDir, constrai
 
 	// Add constraints
 	if len(constraints) > 0 {
-		fmt.Println("Creating the constraints")
 		newConstraints := []string{"-add"}
 		newConstraints = append(newConstraints, strings.Split(constraints, ",")...)
 		err = depManager.Ensure(newConstraints...)
@@ -185,16 +185,29 @@ func doCreate(enviro env.Project, appJson, rootDir, appName, vendorDir, constrai
 		}
 	}
 
+
+
+	ensureArgs := []string{}
+
+	if len(vendorDir) > 0{
+		// Copy vendor directory
+		fgutil.CopyDir(vendorDir, enviro.GetVendorDir())
+		// Do not touch vendor folder when ensuring
+		ensureArgs = append(ensureArgs, "-no-vendor")
+	}
+
 	// Sync up
-	err = depManager.Ensure()
+	err = depManager.Ensure(ensureArgs...)
 	if err != nil {
 		return err
 	}
 
-	// Prune
-	err = depManager.Prune()
-	if err != nil {
-		return err
+	if len(vendorDir) == 0 {
+		// Prune
+		err = depManager.Prune()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
